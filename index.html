@@ -2,192 +2,207 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Art Portfolio Vending Machine</title>
+    <title>3D Portfolio Vending Machine</title>
     <style>
         :root {
-            --machine-red: #d32f2f;
-            --glass-blue: rgba(173, 216, 230, 0.3);
-            --metal-grey: #444;
+            --frame: #1e1e1e;
+            --accent: #d32f2f;
+            --led: #3dfc03;
+            --metal: linear-gradient(145deg, #333, #111);
         }
 
         body {
-            background-color: #1a1a1a;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #050505;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            color: white;
+            font-family: 'Courier New', monospace;
         }
 
-        /* The Vending Machine Frame */
-        .vending-machine {
-            width: 350px;
-            background: var(--machine-red);
-            border: 10px solid #8b0000;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            position: relative;
+        /* Machine Chassis */
+        .vending-box {
+            width: 400px;
+            background: var(--frame);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.05);
+            border: 4px solid #333;
         }
 
-        /* Glass Display Area */
-        .display-glass {
-            background: var(--glass-blue);
-            border: 5px solid var(--metal-grey);
-            height: 450px;
-            border-radius: 10px;
+        /* Glass Viewport */
+        .glass {
+            background: #000;
+            height: 400px;
+            border: 10px solid #111;
+            border-radius: 5px;
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
             padding: 15px;
-            overflow-y: auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 50px rgba(0,255,0,0.02);
         }
 
-        /* Project Items (The "Snacks") */
-        .item {
-            background: white;
-            height: 100px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: transform 0.2s;
+        /* Items */
+        .product {
+            background: #fff;
+            height: 110px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: black;
-            font-size: 12px;
-            font-weight: bold;
-            text-align: center;
-            border-bottom: 4px solid #ccc;
+            border-bottom: 5px solid #bbb;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
 
-        .item:hover {
-            transform: scale(1.05) rotate(2deg);
-        }
+        .product img { width: 100%; height: 80px; object-fit: cover; }
+        .code-tag { background: #333; color: white; text-align: center; font-size: 12px; padding: 2px; }
 
-        .item img {
-            width: 80%;
-            height: 60px;
-            object-fit: cover;
-            margin-bottom: 5px;
-        }
-
-        /* Interaction Panel */
-        .controls {
-            margin-top: 20px;
+        /* Panel */
+        .panel {
+            margin-top: 25px;
+            display: flex;
+            gap: 20px;
             background: #222;
             padding: 15px;
             border-radius: 10px;
-            text-align: center;
         }
 
-        .keypad {
+        #screen {
+            background: #050505;
+            color: var(--led);
+            padding: 10px;
+            flex-grow: 1;
+            text-align: right;
+            border: 2px solid #333;
+            text-shadow: 0 0 5px var(--led);
+        }
+
+        .grid-keys {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 5px;
-            margin-top: 10px;
         }
 
         .key {
-            background: #444;
-            border: 1px solid #666;
+            background: #333;
             color: white;
-            padding: 5px;
-            border-radius: 3px;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 3px solid #000;
         }
 
-        /* Pop-up Modal (The "Closer Look") */
+        .key:active { border-bottom: 0; transform: translateY(3px); }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
+            background: rgba(0,0,0,0.95);
+            justify-content: center; align-items: center;
+            z-index: 99;
         }
 
         .modal-content {
-            background: #333;
+            background: #1a1a1a;
+            color: white;
             padding: 30px;
-            border-radius: 15px;
+            border: 1px solid var(--led);
             max-width: 500px;
             text-align: center;
-        }
-
-        .modal-content img {
-            max-width: 100%;
-            border-radius: 10px;
-        }
-
-        .btn-link {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: var(--machine-red);
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
         }
     </style>
 </head>
 <body>
 
-<div class="vending-machine">
-    <div class="display-glass" id="machine-items">
-        <div class="item" onclick="openProject('Cyberpunk Car', 'A high-poly 3D model of a futuristic vehicle.', 'https://via.placeholder.com/400x300', 'project1.html')">
-            <img src="https://via.placeholder.com/80" alt="P1">
-            <span>A1</span>
-        </div>
-        <div class="item" onclick="openProject('Nature Landscape', 'Matte painting using Photoshop and Maya.', 'https://via.placeholder.com/400x300', 'project2.html')">
-            <img src="https://via.placeholder.com/80" alt="P2">
-            <span>A2</span>
-        </div>
-        </div>
+<div class="vending-box">
+    <div class="glass">
+        <div class="product"><img src="https://via.placeholder.com/150/0000FF"><div class="code-tag">A1</div></div>
+        <div class="product"><img src="https://via.placeholder.com/150/FF0000"><div class="code-tag">A2</div></div>
+        <div class="product"><img src="https://via.placeholder.com/150/00FF00"><div class="code-tag">B1</div></div>
+        <div class="product"><img src="https://via.placeholder.com/150/FFFF00"><div class="code-tag">B2</div></div>
+    </div>
 
-    <div class="controls">
-        <div style="color: #0f0; font-family: monospace; background: #000; padding: 5px;">SELECT ITEM...</div>
-        <div class="keypad">
-            <div class="key">1</div><div class="key">2</div><div class="key">3</div>
-            <div class="key">A</div><div class="key">B</div><div class="key">C</div>
+    <div class="panel">
+        <div id="screen">IDLE</div>
+        <div class="grid-keys">
+            <button class="key" onclick="press('A')">A</button>
+            <button class="key" onclick="press('B')">B</button>
+            <button class="key" onclick="press('1')">1</button>
+            <button class="key" onclick="press('2')">2</button>
+            <button class="key" onclick="clearS()">C</button>
+            <button class="key" onclick="vend()" style="background: #060;">E</button>
         </div>
     </div>
 </div>
 
-<div id="projectModal" class="modal">
-    <div class="modal-content">
-        <h2 id="modalTitle">Project Title</h2>
-        <img id="modalImg" src="" alt="Project Preview">
-        <p id="modalDesc">Description goes here.</p>
-        <a id="modalLink" href="#" class="btn-link">View Full Project Details</a>
-        <br><br>
-        <button onclick="closeModal()" style="background:none; border:none; color:grey; cursor:pointer;">[ Close ]</button>
+<div id="modal" class="modal" onclick="this.style.display='none'">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h2 id="mTitle"></h2>
+        <img id="mImg" style="width:100%">
+        <p id="mDesc"></p>
+        <button onclick="document.getElementById('modal').style.display='none'">CLOSE</button>
     </div>
 </div>
 
 <script>
-    function openProject(title, desc, img, link) {
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalDesc').innerText = desc;
-        document.getElementById('modalImg').src = img;
-        document.getElementById('modalLink').href = link;
-        document.getElementById('projectModal').style.display = 'flex';
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let input = "";
+    
+    const projects = {
+        "A1": { name: "3D Character", desc: "A detailed 3D sculpt.", img: "https://via.placeholder.com/500x300/0000FF" },
+        "A2": { name: "Environment Art", desc: "Unreal Engine 5 scene.", img: "https://via.placeholder.com/500x300/FF0000" }
+    };
+
+    function playSound(freq, type, duration) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
     }
 
-    function closeModal() {
-        document.getElementById('projectModal').style.display = 'none';
+    function press(val) {
+        playSound(800, 'square', 0.1); // Key beep
+        if(input.length < 2) {
+            input += val;
+            document.getElementById('screen').innerText = input;
+        }
     }
 
-    // Close modal if user clicks outside of the box
-    window.onclick = function(event) {
-        if (event.target == document.getElementById('projectModal')) {
-            closeModal();
+    function clearS() {
+        input = "";
+        document.getElementById('screen').innerText = "IDLE";
+        playSound(300, 'sine', 0.2);
+    }
+
+    function vend() {
+        if(projects[input]) {
+            document.getElementById('screen').innerText = "VENDING";
+            // Mechanical motor sound
+            playSound(100, 'sawtooth', 0.8);
+            setTimeout(() => {
+                const p = projects[input];
+                document.getElementById('mTitle').innerText = p.name;
+                document.getElementById('mImg').src = p.img;
+                document.getElementById('mDesc').innerText = p.desc;
+                document.getElementById('modal').style.display = 'flex';
+                clearS();
+            }, 1000);
+        } else {
+            document.getElementById('screen').innerText = "ERROR";
+            playSound(150, 'square', 0.5);
+            setTimeout(clearS, 1000);
         }
     }
 </script>
-
 </body>
 </html>
